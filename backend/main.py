@@ -146,6 +146,10 @@ async def get_crypto_prices():
 async def root():
     return {"message": "3Commas Clone API is running!"}
 
+@app.get("/api/")
+async def api_root():
+    return {"message": "3Commas Clone API is running!"}
+
 # Authentication Routes
 @app.post("/api/auth/register")
 async def register(user: UserCreate):
