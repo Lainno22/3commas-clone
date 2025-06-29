@@ -1,8 +1,253 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import { useAuth } from './App';
+import { useNavigate, Link } from 'react-router-dom';
 
-// Header Component
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+const API = `${BACKEND_URL}/api`;
+
+// Login Page Component
+const LoginPage = () => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const { login } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+
+    const result = await login(email, password);
+    if (result.success) {
+      navigate('/dashboard');
+    } else {
+      setError(result.error);
+    }
+    setLoading(false);
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8">
+        <div>
+          <div className="flex justify-center">
+            <div className="flex items-center">
+              <div className="w-12 h-12 bg-emerald-500 rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-2xl">3</span>
+              </div>
+              <span className="ml-3 text-2xl font-bold text-gray-900">3Commas</span>
+            </div>
+          </div>
+          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+            Sign in to your account
+          </h2>
+          <p className="mt-2 text-center text-sm text-gray-600">
+            Or{' '}
+            <Link to="/register" className="font-medium text-emerald-600 hover:text-emerald-500">
+              create a new account
+            </Link>
+          </p>
+        </div>
+        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+          {error && (
+            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+              {error}
+            </div>
+          )}
+          <div className="space-y-4">
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                Email address
+              </label>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-emerald-500 focus:border-emerald-500"
+                placeholder="Enter your email"
+              />
+            </div>
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                Password
+              </label>
+              <input
+                id="password"
+                name="password"
+                type="password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-emerald-500 focus:border-emerald-500"
+                placeholder="Enter your password"
+              />
+            </div>
+          </div>
+          
+          <div>
+            <button
+              type="submit"
+              disabled={loading}
+              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-50"
+            >
+              {loading ? 'Signing in...' : 'Sign in'}
+            </button>
+          </div>
+          
+          <div className="text-center">
+            <p className="text-sm text-gray-600">
+              Demo Account: Use any email and password to create an account
+            </p>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+// Register Page Component
+const RegisterPage = () => {
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const { register } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+
+    const result = await register(name, email, password);
+    if (result.success) {
+      navigate('/dashboard');
+    } else {
+      setError(result.error);
+    }
+    setLoading(false);
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8">
+        <div>
+          <div className="flex justify-center">
+            <div className="flex items-center">
+              <div className="w-12 h-12 bg-emerald-500 rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-2xl">3</span>
+              </div>
+              <span className="ml-3 text-2xl font-bold text-gray-900">3Commas</span>
+            </div>
+          </div>
+          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+            Create your account
+          </h2>
+          <p className="mt-2 text-center text-sm text-gray-600">
+            Or{' '}
+            <Link to="/login" className="font-medium text-emerald-600 hover:text-emerald-500">
+              sign in to existing account
+            </Link>
+          </p>
+        </div>
+        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+          {error && (
+            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+              {error}
+            </div>
+          )}
+          <div className="space-y-4">
+            <div>
+              <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+                Full Name
+              </label>
+              <input
+                id="name"
+                name="name"
+                type="text"
+                required
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-emerald-500 focus:border-emerald-500"
+                placeholder="Enter your full name"
+              />
+            </div>
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                Email address
+              </label>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-emerald-500 focus:border-emerald-500"
+                placeholder="Enter your email"
+              />
+            </div>
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                Password
+              </label>
+              <input
+                id="password"
+                name="password"
+                type="password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-emerald-500 focus:border-emerald-500"
+                placeholder="Create a password"
+              />
+            </div>
+          </div>
+          
+          <div>
+            <button
+              type="submit"
+              disabled={loading}
+              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-50"
+            >
+              {loading ? 'Creating account...' : 'Create account'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+// Header Component (Updated with Auth)
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSignUp = () => {
+    if (user) {
+      navigate('/dashboard');
+    } else {
+      navigate('/register');
+    }
+  };
+
+  const handleSignIn = () => {
+    if (user) {
+      logout();
+      navigate('/');
+    } else {
+      navigate('/login');
+    }
+  };
 
   return (
     <header className="bg-white shadow-sm sticky top-0 z-50">
@@ -10,28 +255,54 @@ const Header = () => {
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center">
             <div className="flex-shrink-0">
-              <div className="flex items-center">
+              <Link to="/" className="flex items-center">
                 <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center">
                   <span className="text-white font-bold text-lg">3</span>
                 </div>
                 <span className="ml-2 text-xl font-bold text-gray-900">3Commas</span>
-              </div>
+              </Link>
             </div>
             <nav className="hidden md:ml-10 md:flex space-x-8">
-              <a href="/trading-bots" className="text-gray-700 hover:text-emerald-600 px-3 py-2 text-sm font-medium">Trading Bots</a>
+              <Link to="/trading-bots" className="text-gray-700 hover:text-emerald-600 px-3 py-2 text-sm font-medium">Trading Bots</Link>
               <a href="#" className="text-gray-700 hover:text-emerald-600 px-3 py-2 text-sm font-medium">Solutions</a>
               <a href="#" className="text-gray-700 hover:text-emerald-600 px-3 py-2 text-sm font-medium">Features</a>
               <a href="#" className="text-gray-700 hover:text-emerald-600 px-3 py-2 text-sm font-medium">Plans</a>
               <a href="#" className="text-gray-700 hover:text-emerald-600 px-3 py-2 text-sm font-medium">Price Charts</a>
-              <a href="#" className="text-gray-700 hover:text-emerald-600 px-3 py-2 text-sm font-medium">Developers</a>
-              <a href="#" className="text-gray-700 hover:text-emerald-600 px-3 py-2 text-sm font-medium">Company</a>
+              {user && (
+                <>
+                  <Link to="/dashboard" className="text-gray-700 hover:text-emerald-600 px-3 py-2 text-sm font-medium">Dashboard</Link>
+                  <Link to="/portfolio" className="text-gray-700 hover:text-emerald-600 px-3 py-2 text-sm font-medium">Portfolio</Link>
+                </>
+              )}
             </nav>
           </div>
           <div className="hidden md:flex items-center space-x-4">
-            <a href="#" className="text-gray-700 hover:text-emerald-600 px-3 py-2 text-sm font-medium">Sign In</a>
-            <button className="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-md text-sm font-medium">
-              Sign Up
-            </button>
+            {user ? (
+              <>
+                <span className="text-gray-700 px-3 py-2 text-sm">Welcome, {user.name}</span>
+                <button
+                  onClick={handleSignIn}
+                  className="text-gray-700 hover:text-emerald-600 px-3 py-2 text-sm font-medium"
+                >
+                  Sign Out
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={handleSignIn}
+                  className="text-gray-700 hover:text-emerald-600 px-3 py-2 text-sm font-medium"
+                >
+                  Sign In
+                </button>
+                <button
+                  onClick={handleSignUp}
+                  className="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-md text-sm font-medium"
+                >
+                  Sign Up
+                </button>
+              </>
+            )}
             <div className="flex items-center text-sm text-gray-600">
               <span className="mr-1">🌐</span>
               <span>EN</span>
@@ -52,10 +323,13 @@ const Header = () => {
       {isMenuOpen && (
         <div className="md:hidden">
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-white shadow-lg">
-            <a href="/trading-bots" className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-emerald-600">Trading Bots</a>
-            <a href="#" className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-emerald-600">Solutions</a>
-            <a href="#" className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-emerald-600">Features</a>
-            <a href="#" className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-emerald-600">Plans</a>
+            <Link to="/trading-bots" className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-emerald-600">Trading Bots</Link>
+            {user && (
+              <>
+                <Link to="/dashboard" className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-emerald-600">Dashboard</Link>
+                <Link to="/portfolio" className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-emerald-600">Portfolio</Link>
+              </>
+            )}
           </div>
         </div>
       )}
@@ -63,8 +337,19 @@ const Header = () => {
   );
 };
 
-// Hero Section Component
+// Hero Section Component (Updated)
 const HeroSection = () => {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+
+  const handleStartTrial = () => {
+    if (user) {
+      navigate('/dashboard');
+    } else {
+      navigate('/register');
+    }
+  };
+
   return (
     <section className="relative bg-gradient-to-br from-gray-50 to-blue-50 overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
@@ -76,8 +361,11 @@ const HeroSection = () => {
           <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
             Join millions of traders using 3Commas to automate their cryptocurrency trading with advanced bots and smart strategies.
           </p>
-          <button className="bg-emerald-500 hover:bg-emerald-600 text-white px-8 py-4 rounded-lg text-lg font-semibold shadow-lg transform transition hover:scale-105">
-            Start Free Trial
+          <button 
+            onClick={handleStartTrial}
+            className="bg-emerald-500 hover:bg-emerald-600 text-white px-8 py-4 rounded-lg text-lg font-semibold shadow-lg transform transition hover:scale-105"
+          >
+            {user ? 'Go to Dashboard' : 'Start Free Trial'}
           </button>
           
           <div className="flex justify-center items-center mt-8 space-x-8 text-sm text-gray-600">
@@ -232,6 +520,17 @@ const BenefitsSection = () => {
 
 // CTA Section Component
 const CTASection = () => {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+
+  const handleStartTrial = () => {
+    if (user) {
+      navigate('/dashboard');
+    } else {
+      navigate('/register');
+    }
+  };
+
   return (
     <section className="bg-gradient-to-r from-emerald-600 to-emerald-700 py-16">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
@@ -241,8 +540,11 @@ const CTASection = () => {
         <p className="text-xl text-emerald-100 mb-8">
           Seize opportunities that manual traders can't
         </p>
-        <button className="bg-white text-emerald-600 hover:bg-gray-100 px-8 py-4 rounded-lg text-lg font-semibold shadow-lg transform transition hover:scale-105">
-          Start Free Trial
+        <button 
+          onClick={handleStartTrial}
+          className="bg-white text-emerald-600 hover:bg-gray-100 px-8 py-4 rounded-lg text-lg font-semibold shadow-lg transform transition hover:scale-105"
+        >
+          {user ? 'Go to Dashboard' : 'Start Free Trial'}
         </button>
       </div>
     </section>
@@ -441,9 +743,12 @@ const Footer = () => {
   );
 };
 
-// Trading Bots Page Component
+// Trading Bots Page Component (Updated with API)
 const TradingBotsPage = () => {
   const [activeBot, setActiveBot] = useState('dca');
+  const [bots, setBots] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showCreateModal, setShowCreateModal] = useState(false);
   
   const botTypes = {
     dca: {
@@ -463,6 +768,38 @@ const TradingBotsPage = () => {
       description: 'Execute trades based on external signals',
       features: ['TradingView integration', 'Telegram signals', 'Custom webhooks'],
       image: 'https://images.unsplash.com/photo-1639768939489-025b90ba9f23'
+    }
+  };
+
+  useEffect(() => {
+    fetchBots();
+  }, []);
+
+  const fetchBots = async () => {
+    try {
+      const response = await axios.get(`${API}/bots`);
+      setBots(response.data);
+    } catch (error) {
+      console.error('Failed to fetch bots:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const createBot = async () => {
+    try {
+      const newBot = {
+        name: `${botTypes[activeBot].name} - ${Date.now()}`,
+        bot_type: activeBot,
+        pair: 'BTC/USDT',
+        config: { interval: 'daily', amount: 100 }
+      };
+
+      await axios.post(`${API}/bots`, newBot);
+      fetchBots();
+      setShowCreateModal(false);
+    } catch (error) {
+      console.error('Failed to create bot:', error);
     }
   };
 
@@ -492,7 +829,7 @@ const TradingBotsPage = () => {
           </div>
         </div>
         
-        <div className="bg-white rounded-2xl shadow-xl p-8">
+        <div className="bg-white rounded-2xl shadow-xl p-8 mb-8">
           <div className="grid md:grid-cols-2 gap-8 items-center">
             <div>
               <h2 className="text-3xl font-bold text-gray-900 mb-4">
@@ -511,7 +848,10 @@ const TradingBotsPage = () => {
                   </li>
                 ))}
               </ul>
-              <button className="bg-emerald-500 hover:bg-emerald-600 text-white px-8 py-3 rounded-lg font-semibold">
+              <button 
+                onClick={createBot}
+                className="bg-emerald-500 hover:bg-emerald-600 text-white px-8 py-3 rounded-lg font-semibold"
+              >
                 Create {botTypes[activeBot].name}
               </button>
             </div>
@@ -524,58 +864,131 @@ const TradingBotsPage = () => {
             </div>
           </div>
         </div>
+
+        {/* Active Bots List */}
+        <div className="bg-white rounded-2xl shadow-xl p-8">
+          <h3 className="text-2xl font-bold text-gray-900 mb-6">Your Active Bots</h3>
+          {loading ? (
+            <div className="text-center py-8">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500 mx-auto"></div>
+            </div>
+          ) : bots.length === 0 ? (
+            <p className="text-gray-600 text-center py-8">No bots created yet. Create your first bot above!</p>
+          ) : (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {bots.map((bot) => (
+                <div key={bot.id} className="border rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="font-semibold text-gray-900">{bot.name}</h4>
+                    <span className={`px-2 py-1 rounded-full text-xs ${
+                      bot.status === 'active' 
+                        ? 'bg-green-100 text-green-800' 
+                        : 'bg-yellow-100 text-yellow-800'
+                    }`}>
+                      {bot.status}
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-600 mb-1">{bot.pair}</p>
+                  <p className="text-sm font-medium text-green-600">+${bot.profit.toFixed(2)}</p>
+                  <p className="text-xs text-gray-500 mt-2">{bot.bot_type.toUpperCase()} Bot</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
 };
 
-// Dashboard Page Component
+// Dashboard Page Component (Updated with API)
 const DashboardPage = () => {
-  const [activeTab, setActiveTab] = useState('overview');
-  
-  const portfolioData = [
-    { coin: 'BTC', amount: '0.05234', value: '$2,145.67', change: '+5.2%', changeColor: 'text-green-600' },
-    { coin: 'ETH', amount: '1.2345', value: '$3,456.78', change: '-2.1%', changeColor: 'text-red-600' },
-    { coin: 'ADA', amount: '1,234.56', value: '$567.89', change: '+12.3%', changeColor: 'text-green-600' },
-    { coin: 'DOT', amount: '45.67', value: '$234.56', change: '+8.9%', changeColor: 'text-green-600' },
-  ];
+  const [dashboardStats, setDashboardStats] = useState(null);
+  const [portfolio, setPortfolio] = useState(null);
+  const [bots, setBots] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const activeBots = [
-    { name: 'BTC DCA Bot', status: 'Active', profit: '+$234.56', pairs: 'BTC/USDT', type: 'DCA' },
-    { name: 'ETH Grid Bot', status: 'Active', profit: '+$123.45', pairs: 'ETH/USDT', type: 'Grid' },
-    { name: 'ADA Signal Bot', status: 'Paused', profit: '+$45.67', pairs: 'ADA/USDT', type: 'Signal' },
-  ];
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
+  const fetchDashboardData = async () => {
+    try {
+      const [statsResponse, portfolioResponse, botsResponse] = await Promise.all([
+        axios.get(`${API}/dashboard/stats`),
+        axios.get(`${API}/portfolio`),
+        axios.get(`${API}/bots`)
+      ]);
+
+      setDashboardStats(statsResponse.data);
+      setPortfolio(portfolioResponse.data);
+      setBots(botsResponse.data);
+    } catch (error) {
+      console.error('Failed to fetch dashboard data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const refreshPortfolio = async () => {
+    try {
+      await axios.put(`${API}/portfolio/refresh`);
+      fetchDashboardData();
+    } catch (error) {
+      console.error('Failed to refresh portfolio:', error);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-emerald-500"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Dashboard</h1>
-          <p className="text-gray-600">Monitor your trading performance and portfolio</p>
+        <div className="mb-8 flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Dashboard</h1>
+            <p className="text-gray-600">Monitor your trading performance and portfolio</p>
+          </div>
+          <button
+            onClick={refreshPortfolio}
+            className="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-lg font-medium"
+          >
+            Refresh Portfolio
+          </button>
         </div>
         
         <div className="grid lg:grid-cols-4 gap-6 mb-8">
           <div className="bg-white rounded-lg shadow p-6">
             <h3 className="text-sm font-medium text-gray-500 mb-2">Total Portfolio Value</h3>
-            <p className="text-2xl font-bold text-gray-900">$6,404.90</p>
-            <p className="text-sm text-green-600">+5.2% (24h)</p>
+            <p className="text-2xl font-bold text-gray-900">
+              ${dashboardStats?.total_portfolio_value?.toFixed(2) || '0.00'}
+            </p>
+            <p className="text-sm text-green-600">+{dashboardStats?.profit_change_24h?.toFixed(1) || '0.0'}% (24h)</p>
           </div>
           
           <div className="bg-white rounded-lg shadow p-6">
             <h3 className="text-sm font-medium text-gray-500 mb-2">Active Bots</h3>
-            <p className="text-2xl font-bold text-gray-900">3</p>
-            <p className="text-sm text-blue-600">2 profitable</p>
+            <p className="text-2xl font-bold text-gray-900">{dashboardStats?.active_bots || 0}</p>
+            <p className="text-sm text-blue-600">{dashboardStats?.total_bots || 0} total</p>
           </div>
           
           <div className="bg-white rounded-lg shadow p-6">
             <h3 className="text-sm font-medium text-gray-500 mb-2">Total Profit</h3>
-            <p className="text-2xl font-bold text-green-600">+$403.68</p>
-            <p className="text-sm text-green-600">+12.3% (All time)</p>
+            <p className="text-2xl font-bold text-green-600">
+              +${dashboardStats?.total_profit?.toFixed(2) || '0.00'}
+            </p>
+            <p className="text-sm text-green-600">All time</p>
           </div>
           
           <div className="bg-white rounded-lg shadow p-6">
             <h3 className="text-sm font-medium text-gray-500 mb-2">Exchanges Connected</h3>
-            <p className="text-2xl font-bold text-gray-900">2</p>
+            <p className="text-2xl font-bold text-gray-900">{dashboardStats?.exchanges_connected || 0}</p>
             <p className="text-sm text-gray-600">Binance, Coinbase</p>
           </div>
         </div>
@@ -587,25 +1000,31 @@ const DashboardPage = () => {
                 <h2 className="text-lg font-semibold text-gray-900">Portfolio Overview</h2>
               </div>
               <div className="p-6">
-                <div className="space-y-4">
-                  {portfolioData.map((item, index) => (
-                    <div key={index} className="flex items-center justify-between">
-                      <div className="flex items-center">
-                        <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center mr-3">
-                          <span className="font-bold text-sm">{item.coin}</span>
+                {portfolio?.holdings?.length > 0 ? (
+                  <div className="space-y-4">
+                    {portfolio.holdings.map((item, index) => (
+                      <div key={index} className="flex items-center justify-between">
+                        <div className="flex items-center">
+                          <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center mr-3">
+                            <span className="font-bold text-sm">{item.symbol}</span>
+                          </div>
+                          <div>
+                            <p className="font-medium text-gray-900">{item.symbol}</p>
+                            <p className="text-sm text-gray-600">{item.amount.toFixed(4)}</p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="font-medium text-gray-900">{item.coin}</p>
-                          <p className="text-sm text-gray-600">{item.amount}</p>
+                        <div className="text-right">
+                          <p className="font-medium text-gray-900">${item.value.toFixed(2)}</p>
+                          <p className={`text-sm ${item.change_24h >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                            {item.change_24h >= 0 ? '+' : ''}{item.change_24h.toFixed(1)}%
+                          </p>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <p className="font-medium text-gray-900">{item.value}</p>
-                        <p className={`text-sm ${item.changeColor}`}>{item.change}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-600 text-center py-8">No portfolio data available</p>
+                )}
               </div>
             </div>
           </div>
@@ -616,24 +1035,28 @@ const DashboardPage = () => {
                 <h2 className="text-lg font-semibold text-gray-900">Active Bots</h2>
               </div>
               <div className="p-6">
-                <div className="space-y-4">
-                  {activeBots.map((bot, index) => (
-                    <div key={index} className="border rounded-lg p-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <h3 className="font-medium text-gray-900">{bot.name}</h3>
-                        <span className={`px-2 py-1 rounded-full text-xs ${
-                          bot.status === 'Active' 
-                            ? 'bg-green-100 text-green-800' 
-                            : 'bg-yellow-100 text-yellow-800'
-                        }`}>
-                          {bot.status}
-                        </span>
+                {bots.length > 0 ? (
+                  <div className="space-y-4">
+                    {bots.slice(0, 5).map((bot) => (
+                      <div key={bot.id} className="border rounded-lg p-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <h3 className="font-medium text-gray-900">{bot.name}</h3>
+                          <span className={`px-2 py-1 rounded-full text-xs ${
+                            bot.status === 'active' 
+                              ? 'bg-green-100 text-green-800' 
+                              : 'bg-yellow-100 text-yellow-800'
+                          }`}>
+                            {bot.status}
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-600 mb-1">{bot.pair}</p>
+                        <p className="text-sm font-medium text-green-600">+${bot.profit.toFixed(2)}</p>
                       </div>
-                      <p className="text-sm text-gray-600 mb-1">{bot.pairs}</p>
-                      <p className="text-sm font-medium text-green-600">{bot.profit}</p>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-600 text-center py-8">No active bots</p>
+                )}
               </div>
             </div>
           </div>
@@ -643,31 +1066,125 @@ const DashboardPage = () => {
   );
 };
 
-// Portfolio Page Component
+// Portfolio Page Component (Updated with API)
 const PortfolioPage = () => {
+  const [portfolio, setPortfolio] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchPortfolio();
+  }, []);
+
+  const fetchPortfolio = async () => {
+    try {
+      const response = await axios.get(`${API}/portfolio`);
+      setPortfolio(response.data);
+    } catch (error) {
+      console.error('Failed to fetch portfolio:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const refreshPortfolio = async () => {
+    try {
+      await axios.put(`${API}/portfolio/refresh`);
+      fetchPortfolio();
+    } catch (error) {
+      console.error('Failed to refresh portfolio:', error);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-emerald-500"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Portfolio Management</h1>
-          <p className="text-gray-600">Track and manage your cryptocurrency portfolio across all exchanges</p>
-        </div>
-        
-        <div className="bg-white rounded-lg shadow p-8 text-center">
-          <img 
-            src="https://images.pexels.com/photos/9169180/pexels-photo-9169180.jpeg" 
-            alt="Portfolio Management"
-            className="w-full max-w-md mx-auto rounded-lg mb-6"
-          />
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Advanced Portfolio Management</h2>
-          <p className="text-gray-600 mb-6">
-            Monitor your entire cryptocurrency portfolio across multiple exchanges from a single dashboard. 
-            Get real-time insights, performance analytics, and automated rebalancing.
-          </p>
-          <button className="bg-emerald-500 hover:bg-emerald-600 text-white px-8 py-3 rounded-lg font-semibold">
-            Connect Exchange
+        <div className="mb-8 flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Portfolio Management</h1>
+            <p className="text-gray-600">Track and manage your cryptocurrency portfolio across all exchanges</p>
+          </div>
+          <button
+            onClick={refreshPortfolio}
+            className="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-lg font-medium"
+          >
+            Refresh Portfolio
           </button>
         </div>
+        
+        {portfolio ? (
+          <div className="space-y-6">
+            <div className="bg-white rounded-lg shadow p-6">
+              <div className="mb-6">
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                  Total Portfolio Value: ${portfolio.total_value.toFixed(2)}
+                </h2>
+                <p className="text-gray-600">Exchange: {portfolio.exchange}</p>
+                <p className="text-sm text-gray-500">Last updated: {new Date(portfolio.updated_at).toLocaleString()}</p>
+              </div>
+              
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {portfolio.holdings.map((holding, index) => (
+                  <div key={index} className="border rounded-lg p-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center">
+                        <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center mr-3">
+                          <span className="font-bold">{holding.symbol}</span>
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-gray-900">{holding.symbol}</h3>
+                          <p className="text-sm text-gray-600">Amount: {holding.amount.toFixed(4)}</p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-sm text-gray-600">Price:</span>
+                        <span className="text-sm font-medium">${holding.price.toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-sm text-gray-600">Value:</span>
+                        <span className="text-sm font-medium">${holding.value.toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-sm text-gray-600">24h Change:</span>
+                        <span className={`text-sm font-medium ${
+                          holding.change_24h >= 0 ? 'text-green-600' : 'text-red-600'
+                        }`}>
+                          {holding.change_24h >= 0 ? '+' : ''}{holding.change_24h.toFixed(2)}%
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="bg-white rounded-lg shadow p-8 text-center">
+            <img 
+              src="https://images.pexels.com/photos/9169180/pexels-photo-9169180.jpeg" 
+              alt="Portfolio Management"
+              className="w-full max-w-md mx-auto rounded-lg mb-6"
+            />
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Advanced Portfolio Management</h2>
+            <p className="text-gray-600 mb-6">
+              Monitor your entire cryptocurrency portfolio across multiple exchanges from a single dashboard. 
+              Get real-time insights, performance analytics, and automated rebalancing.
+            </p>
+            <button className="bg-emerald-500 hover:bg-emerald-600 text-white px-8 py-3 rounded-lg font-semibold">
+              Connect Exchange
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -685,7 +1202,9 @@ const Components = {
   Footer,
   TradingBotsPage,
   DashboardPage,
-  PortfolioPage
+  PortfolioPage,
+  LoginPage,
+  RegisterPage
 };
 
 export default Components;
