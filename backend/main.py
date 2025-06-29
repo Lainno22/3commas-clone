@@ -19,7 +19,7 @@ from decimal import Decimal
 # Load environment variables
 load_dotenv()
 
-app = FastAPI(title="3Commas Clone API", version="1.0.0")
+app = FastAPI(title="3Commas Clone API", version="1.0.0", docs_url="/api/docs", redoc_url="/api/redoc")
 
 # CORS middleware
 app.add_middleware(
@@ -33,7 +33,7 @@ app.add_middleware(
 # MongoDB connection
 MONGO_URL = os.getenv("MONGO_URL", "mongodb://localhost:27017")
 DB_NAME = os.getenv("DB_NAME", "test_database")
-JWT_SECRET = os.getenv("JWT_SECRET", "your-secret-key-here")
+JWT_SECRET = os.getenv("JWT_SECRET", "your-secret-key-here-3commas-clone-2025")
 JWT_ALGORITHM = "HS256"
 
 client = motor.motor_asyncio.AsyncIOMotorClient(MONGO_URL)
